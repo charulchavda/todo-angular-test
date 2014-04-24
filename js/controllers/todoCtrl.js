@@ -7,11 +7,17 @@
  * - exposes the model to the template and provides event handlers
  */
 todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, todoStorage, filterFilter) {
-	var todos = $scope.todos = todoStorage.get();
-
-	$scope.newTodo = '';
-	$scope.remainingCount = filterFilter(todos, {completed: false}).length;
-	$scope.editedTodo = null;
+	var todos = [];
+	var myDataRef = todoStorage.getFireBase();
+	myDataRef.once('value',function(snapshot) {
+			if(snapshot.val() != null) 
+				todos = $scope.todos =  JSON.parse(JSON.stringify(snapshot.val().todos));
+				$scope.newTodo = '';
+				$scope.todoDueDate = '';
+				$scope.remainingCount = filterFilter(todos, {completed: false}).length;
+				$scope.editedTodo = null;
+			});
+	
 
 	if ($location.path() === '') {
 		$location.path('/');
@@ -29,13 +35,14 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, todoStorage,
 
 	$scope.addTodo = function () {
 		var newTodo = $scope.newTodo.trim();
-		if (newTodo.length === 0) {
+		if (newTodo.length === 0 || $scope.todoDueDate.length === 0) {
 			return;
 		}
 
 		todos.push({
 			title: newTodo,
-			completed: false
+			completed: false,
+			todoDueDate: $scope.todoDueDate
 		});
 		todoStorage.put(todos);
 
@@ -48,11 +55,17 @@ todomvc.controller('TodoCtrl', function TodoCtrl($scope, $location, todoStorage,
 		// Clone the original todo to restore it on demand.
 		$scope.originalTodo = angular.extend({}, todo);
 	};
+	
+	$scope.editDueDate = function (todo) {
+		$scope.editedDueDate = todo;
+		// Clone the original todo to restore it on demand.
+		$scope.originalTodo = angular.extend({}, todo);
+	};
 
 	$scope.doneEditing = function (todo) {
 		$scope.editedTodo = null;
 		todo.title = todo.title.trim();
-
+		
 		if (!todo.title) {
 			$scope.removeTodo(todo);
 		}

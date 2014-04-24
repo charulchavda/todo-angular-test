@@ -6,14 +6,14 @@
 */
 todomvc.factory('todoStorage', function () {
 	var STORAGE_ID = 'todos-angularjs-perf';
-
+	var myDataRef = new Firebase('https://resplendent-fire-6823.firebaseio.com/');
 	return {
-		get: function () {
-			return JSON.parse(localStorage.getItem(STORAGE_ID) || '[]');
+		getFireBase: function () {
+			return myDataRef;
 		},
 
 		put: function (todos) {
-			localStorage.setItem(STORAGE_ID, JSON.stringify(todos));
+			myDataRef.update({todos: todos});
 		}
 	};
 });
